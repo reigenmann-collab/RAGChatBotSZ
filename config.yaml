@@ -1,0 +1,218 @@
+# ============================================================================
+# PM4 - Departmental Pilot (Traffic Department), Community RAG Chatbot
+# Scope per Written Project Report ch. 5.2: road traffic / parking, Gemeinde
+# Schwyz only. Corpus widened to the adjacent municipal road-traffic Erlasse
+# because no standalone municipal parking ordinance exists (see docs/).
+# ============================================================================
+
+project:
+  milestone: PM4
+  name: "Departmental Pilot - Traffic Department"
+  domain: strassenverkehr_parkieren
+  language: de
+  authority: "Gemeinde Schwyz"
+
+# --- Corpus -----------------------------------------------------------------
+# doc_type drives the REQ-11 coverage check. Changing a doc_type changes which
+# questions the system considers answerable with complete information.
+corpus:
+  base_url: "https://www.gemeindeschwyz.ch"
+  user_agent: "PM4-Pilot-Prototype/1.0 (AIBS study project; contact: reigenmann@gmail.com)"
+  request_delay_seconds: 1.5
+  sources:
+    - id: parkplaetze
+      kind: web
+      url: "https://www.gemeindeschwyz.ch/umweltmobilitaet/25475"
+      title: "Parkplätze Gemeinde Schwyz - Tarife und Standorte"
+      doc_type: gebuehrentarif
+      note: "De-facto fee schedule. Tariffs live on a web page, not in any ordinance."
+
+    - id: gewerbeparkkarten
+      kind: web
+      url: "https://www.gemeindeschwyz.ch/dienstleistungen/60590"
+      title: "Gewerbeparkkarten"
+      doc_type: dienstleistung
+
+    - id: gewerbeparkkarten_merkblatt
+      kind: doc
+      url: "https://www.gemeindeschwyz.ch/_doc/6715934"
+      title: "Gewerbeparkkarten-Konzept - Merkblatt"
+      doc_type: merkblatt
+
+    - id: gewerbeparkkarten_plan
+      kind: doc
+      url: "https://www.gemeindeschwyz.ch/_doc/2532527"
+      title: "Gewerbeparkkarten - Übersichtsplan"
+      doc_type: plan
+      indexable: false
+      note: "Map. Text layer is cadastral parcel numbers and street labels only - no answerable content. Excluded from the index; retained in the manifest as a documented ingestion gap."
+
+    - id: erlass_1_45
+      kind: erlass
+      url: "https://www.gemeindeschwyz.ch/reglemente/250025"
+      title: "1.45 Verordnung über Personalparkplätze der Gemeinde Schwyz"
+      doc_type: verordnung
+
+    - id: erlass_4_20
+      kind: erlass
+      url: "https://www.gemeindeschwyz.ch/reglemente/250106"
+      title: "4.20 Verordnung über Strassenbeiträge in der Gemeinde Schwyz"
+      doc_type: verordnung
+
+    - id: erlass_4_21
+      kind: erlass
+      url: "https://www.gemeindeschwyz.ch/reglemente/250115"
+      title: "4.21 Plan zur Strassenbeitragsverordnung"
+      doc_type: plan
+      indexable: false
+      note: "Scanned map, no text layer. OCR would yield parcel labels only. Excluded from the index as a documented gap."
+
+    - id: erlass_4_25
+      kind: erlass
+      url: "https://www.gemeindeschwyz.ch/reglemente/250118"
+      title: "4.25 Einführung der Vorteilsabgabe gemäss § 58 Strassenverordnung"
+      doc_type: gebuehrentarif
+
+    - id: erlass_4_75
+      kind: erlass
+      url: "https://www.gemeindeschwyz.ch/reglemente/250283"
+      title: "4.75 Verordnung über den öffentlichen Verkehr"
+      doc_type: verordnung
+
+# --- Retrieval --------------------------------------------------------------
+# --- OCR -------------------------------------------------------------------
+# Four of the five municipal road-traffic Erlasse are image-only scans with no
+# text layer. Pages are extracted as PNGs and transcribed with the Gemini vision
+# model, then cached to data/raw/<id>.ocr.json. This is a real corpus-readability
+# gap, documented rather than hidden (report 2.4).
+ocr:
+  enabled: true
+  model: "gemini-3.5-flash-lite"
+  max_tokens: 4000
+  cache: true
+
+retrieval:
+  # jinaai/jina-embeddings-v2-base-de was the first choice (German-native) but
+  # its ONNX build emits NaN vectors under onnxruntime 1.29 / Python 3.14.
+  # Verified working multilingual replacement:
+  embedding_model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+  chunk_size_chars: 1100
+  chunk_overlap_chars: 200
+  top_k: 5
+
+# --- Generation -------------------------------------------------------------
+generation:
+  model: "gemini-3.5-flash-lite"
+  max_tokens: 1200
+  temperature: 0.0
+  summary_max_tokens: 600
+
+# --- Confidence scoring (report 4.3) ----------------------------------------
+# C = w1*S1 + w2*S2 + w3*S3
+# Weights below are the INITIAL fit only. calibrate.py refits them on the
+# labelled test set and writes the derived values to eval/results/calibration.json.
+# S2 carries the largest weight because grounding failure is the failure mode
+# with the most serious consequence for a public authority.
+confidence:
+  weights:
+    s1_retrieval_strength: 0.25
+    s2_grounding: 0.55
+    s3_self_assessment: 0.20
+  # Placeholder only - superseded by the calibrated value. The report is explicit
+  # that a chosen threshold is not a calibrated threshold.
+  threshold_placeholder: 0.82
+  calibrated_threshold: null
+  target_precision_on_auto_answered: 0.95
+
+# --- REQ-11 coverage check (report 4.3, independent routing trigger) ---------
+# An answer may be correct yet incomplete. If a query is about a topic whose
+# authoritative answer requires a document type, and no chunk of that type was
+# retrieved, the answer is escalated regardless of confidence.
+coverage:
+  enabled: true
+  rules:
+    - topic: gebuehren
+      description: "Fees, tariffs, prices, costs"
+      query_patterns:
+        - "gebühr"
+        - "gebuehr"
+        - "kosten"
+        - "kostet"
+        - "tarif"
+        - "preis"
+        - "chf"
+        - "franken"
+        - "bezahlen"
+        - "zahlen"
+        - "teuer"
+        - "abgabe"
+      required_doc_types: [gebuehrentarif]
+
+    - topic: parkkarte
+      description: "Parking card issuance, eligibility, application"
+      query_patterns:
+        - "parkkarte"
+        - "gewerbeparkkarte"
+        - "dauerparkkarte"
+        - "parkbewilligung"
+        - "bewilligung"
+      required_doc_types: [dienstleistung, merkblatt]
+
+    - topic: rechtsgrundlage
+      description: "Legal basis, entitlement, obligation"
+      query_patterns:
+        - "verordnung"
+        - "reglement"
+        - "gesetz"
+        - "paragraph"
+        - "rechtlich"
+        - "vorschrift"
+        - "anspruch"
+        - "verpflichtet"
+      required_doc_types: [verordnung]
+
+# --- Routing (report 4.4) ---------------------------------------------------
+# Two INDEPENDENT mechanisms. Hard routing is evaluated first and is never
+# overridden by a high confidence score.
+routing:
+  hard_route_patterns:
+    - "einsprache"
+    - "rekurs"
+    - "beschwerde"
+    - "anfechten"
+    - "anfechtung"
+    - "rechtsmittel"
+    - "klage"
+    - "klagen"
+    - "anwalt"
+    - "rechtsanwalt"
+    - "gericht"
+    - "strafverfahren"
+    - "strafbefehl"
+    - "busse"
+    - "schadenersatz"
+    - "haftung"
+    - "haftbar"
+    - "haftet"
+    - "widerspruch"
+    - "entzug"
+    - "verfügung"
+    - "verfuegung"
+    - "streit"
+    - "unrechtmässig"
+    - "unrechtmaessig"
+  hard_route_reason: "Rechtliche Streitigkeit oder Rechtsmittel - wird ohne automatisierten Antwortversuch an eine Sachbearbeiterin oder einen Sachbearbeiter weitergeleitet."
+
+# --- Logging (REQ-08 pseudonymisation, REQ-09 auditability) -----------------
+logging:
+  path: "data/logs/audit.jsonl"
+  pseudonymise: true
+  # Salted SHA-256 over the raw query; the raw text is never written when
+  # pseudonymise is true.
+  retention_days: 90
+
+# --- Non-functional targets (report 5.4) ------------------------------------
+targets:
+  response_time_seconds: 5.0
+  poc_answer_accuracy: 0.70
+  escalation_correctness: 1.00

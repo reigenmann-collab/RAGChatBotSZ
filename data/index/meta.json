@@ -1,0 +1,14 @@
+{
+  "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "dimension": 384,
+  "chunk_count": 36,
+  "document_count": 7,
+  "doc_types_indexed": [
+    "dienstleistung",
+    "gebuehrentarif",
+    "merkblatt",
+    "verordnung"
+  ],
+  "chunk_size_chars": 1100,
+  "chunk_overlap_chars": 200
+}

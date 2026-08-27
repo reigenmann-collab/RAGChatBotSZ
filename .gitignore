@@ -1,0 +1,13 @@
+.env
+.streamlit/secrets.toml
+data/raw/*.json
+data/logs/*
+eval/results/*
+__pycache__/
+*.pyc
+.fastembed_cache/
+
+# The prebuilt FAISS index IS committed (data/index/) so a deployed demo works
+# without re-running ingestion, OCR and embedding on first load. It is public
+# municipal data, not a secret. If the corpus changes, rebuild and re-commit:
+#   python src/ingest.py && python src/ocr.py && python src/chunk_index.py

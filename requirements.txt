@@ -1,0 +1,14 @@
+# PM4 Departmental Pilot - Community RAG Chatbot (Traffic Department / Strassenverkehr)
+# Python 3.14 compatible
+fastembed>=0.8
+google-genai>=1.0
+faiss-cpu>=1.9
+pypdf>=5.0
+beautifulsoup4>=4.12
+requests>=2.32
+python-dotenv>=1.0
+PyYAML>=6.0
+numpy>=2.0
+pandas>=2.2
+matplotlib>=3.9
+streamlit>=1.40

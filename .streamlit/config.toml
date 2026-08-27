@@ -1,0 +1,10 @@
+# Palette lifted from the real site's compiled CSS (main.*.css custom properties):
+# --icms-gemeinde-bootstrap-primary: #e10a12   (Gemeinde Schwyz red)
+# --icms-gemeinde-bootstrap-secondary: #050924  (dark navy, used for the
+#   "Barrierefreiheit" toggle and body text)
+[theme]
+primaryColor = "#e10a12"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#050924"
+font = "sans serif"

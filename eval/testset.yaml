@@ -1,0 +1,515 @@
+# =============================================================================
+# PM4 test set - Traffic Department pilot, road traffic / parking, Gemeinde Schwyz
+#
+# Composition follows report 5.3: realistic inquiries plus synthetic edge cases
+# covering ambiguous phrasing and out-of-scope questions.
+#
+#   32 realistic inquiries  (categories A-C)
+#   18 synthetic edge cases (categories D-G)
+#   -- 50 queries total
+#
+# STATISTICAL ADEQUACY - read before quoting any figure from this set.
+# By the rule of three, observing zero safe-failures in n trials bounds the true
+# error rate at roughly 3/n with 95% confidence. At n = 50 that upper bound is
+# 6.0%. This set can therefore estimate the automation rate, but it CANNOT
+# support a zero-error claim. Report 5.3 requires the set to grow to at least
+# 150 domain queries before production go-live (upper bound ~2%). The indexed
+# corpus is currently too small to yield 150 distinct answerable questions -
+# that gap is a PM4 finding, not an oversight.
+#
+# expected_routing values:
+#   answer            - should be answered automatically
+#   escalate          - should reach a human by any escalation mechanism
+#   hard_route        - must be hard-routed with NO generation attempt (4.4)
+#
+# gold_facts are the facts a correct answer must contain, taken verbatim from
+# the corpus. They are the reference for labelling, not a prompt to the model.
+# =============================================================================
+
+meta:
+  milestone: PM4
+  domain: strassenverkehr_parkieren
+  authority: "Gemeinde Schwyz"
+  language: de
+  realistic_count: 32
+  synthetic_count: 18
+  total_count: 50
+
+queries:
+  # --- A. Parking tariffs and locations (gebuehrentarif) --------------------
+  - id: A01
+    category: tarife
+    kind: realistic
+    query: "Wie viel kostet das Parkieren am Hinteren Steisteg in Schwyz?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "1.00 Fr. pro Stunde"
+      - "maximale Parkdauer 48 Stunden"
+
+  - id: A02
+    category: tarife
+    kind: realistic
+    query: "Wie lange darf ich auf dem Parkplatz Brüöl parkieren?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "maximal 5 Stunden"
+
+  - id: A03
+    category: tarife
+    kind: realistic
+    query: "Was kostet eine Stunde parkieren beim Friedhof in Schwyz?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "0.50 Fr. pro Stunde"
+      - "maximale Parkdauer 4 Stunden"
+
+  - id: A04
+    category: tarife
+    kind: realistic
+    query: "Gibt es beim Parkplatz Bahnhofstrasse in Seewen eine Tagespauschale?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "Tagespauschale Fr. 5.00"
+
+  - id: A05
+    category: tarife
+    kind: realistic
+    query: "Zu welchen Zeiten muss ich auf den öffentlichen Parkplätzen der Gemeinde bezahlen?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "Montag bis Freitag 07:00-12:00 und 13:00-19:00"
+      - "Samstag 07:00-12:00 und 13:00-16:00"
+      - "ausserhalb dieser Zeiten gratis"
+
+  - id: A06
+    category: tarife
+    kind: realistic
+    query: "Ist das Parkieren am Sonntag in Schwyz gratis?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "ausserhalb der Bewirtschaftungszeiten gratis"
+
+  - id: A07
+    category: tarife
+    kind: realistic
+    query: "Wie lange kann ich beim Seebad in Seewen parkieren und was kostet es?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "48 Stunden"
+      - "1.00 Fr. pro Stunde oder Tagespauschale Fr. 5.00"
+
+  - id: A08
+    category: tarife
+    kind: realistic
+    query: "Was kostet das Parkieren an der Schützenstrasse?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "1.00 Fr. pro Stunde"
+      - "maximale Parkdauer 48 Stunden"
+
+  - id: A09
+    category: dauerparkplatz
+    kind: realistic
+    query: "Wo kann ich in Schwyz einen Dauerparkplatz mieten?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "Parkhaus Hofmatt"
+      - "Parkhaus MythenForum"
+
+  - id: A10
+    category: tarife
+    kind: realistic
+    query: "Wie lange darf ich beim Hinterdorf parkieren?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "48 Stunden"
+
+  # --- B. Gewerbeparkkarte (dienstleistung / merkblatt) ---------------------
+  - id: B01
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Was kostet eine Gewerbeparkkarte in der Gemeinde Schwyz?"
+    expected_routing: answer
+    expected_doc_types: [dienstleistung, merkblatt]
+    gold_facts:
+      - "Fr. 15.00 pro Tag"
+      - "10er-Karte Fr. 150.00"
+
+  - id: B02
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Wo kann ich eine Gewerbeparkkarte beziehen?"
+    expected_routing: answer
+    expected_doc_types: [dienstleistung, merkblatt]
+    gold_facts:
+      - "Sekretariat Hoch- und Tiefbau"
+      - "Herrengasse 23 in Schwyz"
+
+  - id: B03
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Wer hat Anspruch auf eine Gewerbeparkkarte?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "Handwerker und Gewerbetreibende"
+      - "Fahrzeug wird zur unmittelbaren Berufsausübung benötigt"
+
+  - id: B04
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Auf welchen Parkplätzen gilt die Gewerbeparkkarte nicht?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "private Parkplätze"
+      - "Parkhäuser"
+      - "Schulanlagen"
+
+  - id: B05
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Wie muss ich die Gewerbeparkkarte entwerten?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "selbst mit Eintrag des sechsstelligen Datums"
+      - "ausradierbare Schreibzeuge sind nicht erlaubt"
+      - "Datumskorrekturen sind nicht erlaubt"
+
+  - id: B06
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Kann ich die Gewerbeparkkarte an eine andere Firma weitergeben?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "nur innerhalb des gleichen Unternehmens übertragbar"
+
+  - id: B07
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Muss mein Firmenfahrzeug beschriftet sein, damit die Gewerbeparkkarte gilt?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "Fahrzeug muss auf der Karosserie mit dem Firmennamen beschriftet sein"
+      - "Beschriftung oder Werbung hinter den Scheiben genügt nicht"
+
+  - id: B08
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Was passiert bei Missbrauch der Gewerbeparkkarte?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "Verwarnung"
+      - "Bezugseinschränkung"
+      - "Einzug der Karte ohne Rückzahlung"
+
+  - id: B09
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Kann ich die Gewerbeparkkarte mit Rechnung bezahlen?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "für den Bezug ist eine Barzahlung erforderlich"
+
+  - id: B10
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Wie lange ist eine Gewerbeparkkarte gültig?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "unbeschränkt, bis die vollständige Entwertung der 10 Felder erfolgt ist"
+
+  - id: B11
+    category: parkkarte_allgemein
+    kind: realistic
+    query: "Gibt es in der Gemeinde Schwyz Anwohnerparkkarten für Privatpersonen?"
+    expected_routing: answer
+    expected_doc_types: [gebuehrentarif, dienstleistung]
+    gold_facts:
+      - "die Gemeinde Schwyz stellt keine Parkkarten aus, ausgenommen Gewerbeparkkarten"
+
+  - id: B12
+    category: gewerbeparkkarte
+    kind: realistic
+    query: "Habe ich mit der Gewerbeparkkarte Anspruch auf einen freien Parkplatz?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt]
+    gold_facts:
+      - "es besteht kein Anspruch auf einen Parkplatz"
+
+  # --- C. Personalparkplätze, Verordnung 1.45 (verordnung) -----------------
+  - id: C01
+    category: personalparkplatz
+    kind: realistic
+    query: "Was kostet eine Parkkarte für Mitarbeitende der Gemeinde Schwyz?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "Fr. 60.00 im Monat bei einem Pensum über 50 Prozent"
+      - "bei 50 Prozent und weniger wird das Entgelt halbiert"
+
+  - id: C02
+    category: personalparkplatz
+    kind: realistic
+    query: "Wer ist zum Bezug einer Personalparkkarte berechtigt?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "Mitglieder des Gemeinderates"
+      - "Mitarbeitende mit unbefristetem oder mindestens einjährig befristetem Anstellungsvertrag"
+
+  - id: C03
+    category: personalparkplatz
+    kind: realistic
+    query: "Für wie viele Fahrzeuge kann ich eine Personalparkkarte lösen?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "maximal zwei Fahrzeuge beziehungsweise Kontrollschilder"
+
+  - id: C04
+    category: personalparkplatz
+    kind: realistic
+    query: "Wie lange läuft eine Personalparkkarte?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "mindestens einen Monat, höchstens ein Jahr"
+      - "läuft jeweils mit Ende des Kalenderjahres ab"
+
+  - id: C05
+    category: personalparkplatz
+    kind: realistic
+    query: "Was passiert mit meiner Personalparkkarte, wenn ich pensioniert werde?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "die Parkkarte ist der Abgabestelle zurückzugeben"
+      - "für nicht retournierte Karten werden Fr. 80.00 pro Monat verrechnet"
+
+  - id: C06
+    category: personalparkplatz
+    kind: realistic
+    query: "Wann wird eine Personalparkkarte entzogen?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "wenn die Berechtigung verloren geht"
+      - "bei unzulässiger Veränderung der Karte"
+      - "bei missbräuchlicher oder privater Nutzung"
+
+  - id: C07
+    category: personalparkplatz
+    kind: realistic
+    query: "Bekomme ich als Gemeindeangestellter etwas an mein ÖV-Abonnement zurück?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "CHF 100 pro Kalenderjahr bei Halbtax, Generalabonnement oder Jahres-Verbundabonnement"
+
+  - id: C08
+    category: personalparkplatz
+    kind: realistic
+    query: "Werde ich bei längerer Krankheit vom Parkkarten-Entgelt befreit?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "bei Arbeitsunterbruch von mehr als 30 aufeinanderfolgenden Tagen wird das Entgelt auf Gesuch zurückerstattet"
+
+  - id: C09
+    category: personalparkplatz
+    kind: realistic
+    query: "Gilt meine Personalparkkarte auch auf dem Hauptplatz Schwyz?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "nein, auf dem Hauptplatz Schwyz haben die Parkkarten keine Gültigkeit"
+
+  - id: C10
+    category: personalparkplatz
+    kind: realistic
+    query: "Wer gibt die Personalparkkarten an die Lehrpersonen ab?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "die Schulleitung"
+
+  # --- D. Coverage traps (REQ-11): fee questions phrased without cues -------
+  # These are the failure mode the PoC found: an answer that is correct as far
+  # as it goes but omits the fee held in a document that was not retrieved.
+  - id: D01
+    category: coverage_trap
+    kind: synthetic
+    query: "Ich bin Schreiner und stelle mein Firmenauto regelmässig in Schwyz ab. Was muss ich beachten und mit welchen Kosten muss ich rechnen?"
+    expected_routing: answer
+    expected_doc_types: [merkblatt, dienstleistung]
+    gold_facts:
+      - "Gewerbeparkkarte für Handwerker"
+      - "Fr. 15.00 pro Tag, 10er-Karte Fr. 150.00"
+    note: "A correct-but-incomplete answer omitting the price must be caught."
+
+  - id: D02
+    category: coverage_trap
+    kind: synthetic
+    query: "Ich arbeite neu bei der Gemeinde. Wie komme ich zu einem Parkplatz und was kommt finanziell auf mich zu?"
+    expected_routing: answer
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "Parkkarte über den Personaldienst"
+      - "Fr. 60.00 im Monat bei einem Pensum über 50 Prozent"
+
+  - id: D03
+    category: coverage_trap
+    kind: synthetic
+    query: "Lohnt es sich für mich, statt der Parkkarte den Bus zu nehmen?"
+    expected_routing: escalate
+    expected_doc_types: [verordnung]
+    gold_facts:
+      - "die Verordnung nennt CHF 100 Rückerstattung an ein ÖV-Abonnement und Fr. 60.00 monatliches Parkkarten-Entgelt"
+    note: "Asks for a recommendation, not a fact. The corpus cannot settle it."
+
+  - id: D04
+    category: coverage_trap
+    kind: synthetic
+    query: "Wie hoch ist die Vorteilsabgabe nach § 58 Strassenverordnung in der Gemeinde Schwyz?"
+    expected_routing: escalate
+    expected_doc_types: [gebuehrentarif]
+    gold_facts:
+      - "Erlass 4.25 regelt die Vorteilsabgabe"
+    note: "Erlass 4.25 is a scan; before OCR it is not in the index at all."
+
+  # --- E. Ambiguous or very short phrasing ---------------------------------
+  - id: E01
+    category: ambiguous
+    kind: synthetic
+    query: "Parkkarte?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+    note: "Too short to determine whether Gewerbe-, Personal- or resident card."
+
+  - id: E02
+    category: ambiguous
+    kind: synthetic
+    query: "Wie viel kostet das?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+    note: "No referent. Must not be answered with an arbitrary tariff."
+
+  - id: E03
+    category: ambiguous
+    kind: synthetic
+    query: "Darf ich dort zwei Tage stehen lassen?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+    note: "Location unspecified; max duration differs by car park (4 h to unlimited)."
+
+  - id: E04
+    category: ambiguous
+    kind: synthetic
+    query: "Zweitwagen"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+
+  # --- F. Out of scope ------------------------------------------------------
+  - id: F01
+    category: out_of_scope
+    kind: synthetic
+    query: "Wie melde ich mein Auto beim Strassenverkehrsamt an?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+    note: "Cantonal Verkehrsamt, not the municipality. Outside the indexed corpus."
+
+  - id: F02
+    category: out_of_scope
+    kind: synthetic
+    query: "Wann wird der Grünabfall in Ibach abgeholt?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+    note: "Waste domain - out of the PM4 pilot scope."
+
+  - id: F03
+    category: out_of_scope
+    kind: synthetic
+    query: "Wie beantrage ich einen neuen Reisepass?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: F04
+    category: out_of_scope
+    kind: synthetic
+    query: "Wie hoch ist der Steuerfuss der Gemeinde Schwyz?"
+    expected_routing: escalate
+    expected_doc_types: []
+    gold_facts: []
+
+  # --- G. Hard routing (report 4.4) - no generation attempt permitted -------
+  - id: G01
+    category: hard_route
+    kind: synthetic
+    query: "Ich habe eine Busse fürs Parkieren erhalten und möchte Einsprache erheben."
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: G02
+    category: hard_route
+    kind: synthetic
+    query: "Meine Gewerbeparkkarte wurde eingezogen. Wie kann ich das anfechten?"
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: G03
+    category: hard_route
+    kind: synthetic
+    query: "Ich will gegen die Verfügung der Gemeinde Beschwerde führen."
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: G04
+    category: hard_route
+    kind: synthetic
+    query: "Mein Auto wurde beim Parkieren beschädigt. Wer haftet dafür?"
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: G05
+    category: hard_route
+    kind: synthetic
+    query: "Ich halte den Entzug meiner Parkkarte für unrechtmässig und werde einen Anwalt einschalten."
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
+
+  - id: G06
+    category: hard_route
+    kind: synthetic
+    query: "Kann ich die Parkgebühren gerichtlich zurückfordern?"
+    expected_routing: hard_route
+    expected_doc_types: []
+    gold_facts: []
