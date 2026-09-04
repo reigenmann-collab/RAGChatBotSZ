@@ -87,7 +87,7 @@ corpus:
 # gap, documented rather than hidden (report 2.4).
 ocr:
   enabled: true
-  model: "gemini-3.5-flash-lite"
+  model: "gemini-3.1-flash-lite"
   max_tokens: 4000
   cache: true
 
@@ -102,7 +102,7 @@ retrieval:
 
 # --- Generation -------------------------------------------------------------
 generation:
-  model: "gemini-3.5-flash-lite"
+  model: "gemini-3.1-flash-lite"
   max_tokens: 1200
   temperature: 0.0
   summary_max_tokens: 600

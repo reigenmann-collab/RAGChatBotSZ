@@ -25,6 +25,7 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+from google.genai import errors as genai_errors
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -402,7 +403,36 @@ def main() -> None:
         with st.spinner("Suche in den Dokumenten der Gemeinde Schwyz ..."):
             result = answer_query(query)
     except RuntimeError as exc:
+        # Our own errors (missing key, malformed model response) - the message
+        # is already actionable, safe to show as-is.
         st.error(str(exc))
+        return
+    except genai_errors.ServerError as exc:
+        # Transient 5xx from the model provider, still failing after llm.py's
+        # own retry pass. Not our bug - shown as a retry prompt, not a crash,
+        # so a live demo degrades gracefully instead of dumping a traceback.
+        st.error(
+            "Der Dienst ist momentan überlastet und antwortet nicht. Bitte "
+            "versuchen Sie es in wenigen Sekunden erneut."
+        )
+        print(f"[gemini ServerError] {exc}")  # visible in Streamlit Cloud logs
+        return
+    except genai_errors.ClientError as exc:
+        # 4xx: bad/expired key, quota exhausted, disallowed request. Retrying
+        # would not help, so this is worded differently from the ServerError
+        # case above.
+        st.error(
+            "Der Dienst konnte die Anfrage nicht verarbeiten (Konfigurations- "
+            "oder Kontingentproblem). Bitte informieren Sie die Projektleitung."
+        )
+        print(f"[gemini ClientError] {exc}")
+        return
+    except Exception as exc:  # noqa: BLE001 - last-resort safety net for a live demo
+        st.error(
+            "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie "
+            "es erneut oder wenden Sie sich an die Projektleitung."
+        )
+        print(f"[unexpected error] {type(exc).__name__}: {exc}")
         return
 
     columns = st.columns([3, 2]) if show_inspection else [st.container()]
