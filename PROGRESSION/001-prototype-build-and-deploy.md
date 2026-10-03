@@ -205,7 +205,42 @@ the Streamlit demo (local and deployed), error handling.
 - **REQ-07 not met by design:** generation calls an external API. Retrieval and
   embeddings are fully local.
 
-**Next step, if resuming:** run
-`eval/run_eval.py → label.py → calibrate.py --apply → report_results.py`.
+**Next step, if resuming** — the full chain, including the human step:
+
+```bash
+python eval/run_eval.py
+python eval/label.py
+# caseworker fills column LABEL_SACHBEARBEITUNG in eval/results/review_sheet.csv, then:
+python eval/label.py --merge
+python eval/calibrate.py --apply
+python eval/report_results.py
+```
+
 That produces the derived threshold and the PM4 results tables, which is the
-actual milestone evidence.
+actual milestone evidence. Until the caseworker sheet is merged, every figure is
+provisional.
+
+---
+
+## 9. Session handoff setup (added at the end of the session)
+
+So that a cold-start session does not re-derive state or undo decisions:
+
+- **`CLAUDE.md`** (repo root) — the only piece that *auto-loads* every session.
+  Skills are model-invoked, not auto-loaded, so this is what guarantees the
+  handoff. It tells the session to invoke the skill first, carries the
+  guardrails inline (Jina NaN, blank line in `<style>`, key handling, 0.82
+  placeholder, auto-deploy), and states the open thread.
+- **`.claude/skills/pm4-project-context/`** — the skill. `SKILL.md` plus
+  `references/decisions.md` (standing decisions and their reasons) and
+  `references/FOLDER-DESCRIPTION.md` (folder map).
+- **`scripts/refresh_folder_description.py`** — regenerates the mechanical part of
+  the folder map (tree, sizes, git state, index stats) between
+  `<!-- BEGIN/END GENERATED INVENTORY -->` markers, preserving the hand-written
+  prose. Verified idempotent.
+- **`PROGRESSION/`** — this log and `INDEX.md`.
+- **`docs/SESSION_RECAP_fromCode_PM4 prototype status.md`** — short-form recap of this session, written
+  2026-10-03; the condensed version of this file.
+
+Not verified live: project-local skills register at session start, so the
+skill's automatic triggering could only be tested in a later session.

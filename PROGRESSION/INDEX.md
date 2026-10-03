@@ -10,7 +10,7 @@ expensive to arrive at.
 
 | # | Date(s) | Summary | Left open |
 |---|---|---|---|
-| [001](001-prototype-build-and-deploy.md) | 2026-08-26 → 2026-09-04 | Built the PM4 prototype from the written report's spec; corpus reconnaissance turned up five findings that contradict the report; migrated Anthropic → Gemini; deployed to Streamlit Cloud; restyled the demo to match gemeindeschwyz.ch | Evaluation chain never run end to end — threshold still the 0.82 placeholder, no PAA figures, caseworker review sheet not produced |
+| [001](001-prototype-build-and-deploy.md) | 2026-08-26 → 2026-09-04 | Built the PM4 prototype from the written report's spec; corpus reconnaissance turned up five findings that contradict the report; migrated Anthropic → Gemini; deployed to Streamlit Cloud; restyled the demo to match gemeindeschwyz.ch; set up the CLAUDE.md + `pm4-project-context` skill handoff (see 001 §9); short recap in [`docs/SESSION_RECAP_fromCode_PM4 prototype status.md`](<../docs/SESSION_RECAP_fromCode_PM4 prototype status.md>) | Evaluation chain never run end to end — threshold still the 0.82 placeholder, no PAA figures, caseworker review sheet not produced |
 
 ---
 
