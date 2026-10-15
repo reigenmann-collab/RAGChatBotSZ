@@ -2,7 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-German-language RAG assistant for Gemeinde Schwyz road-traffic and parking inquiries — coursework prototype for milestone **PM4** of the AIBS project. The governing spec is `../REI_Community-RAG-Chatbot_AIBS_Written_Project_Report_v2.docx`; many design choices trace to numbered requirements in it (REQ-xx, §4.3, §4.4). When code and report disagree, surface it to the user rather than quietly fixing either.
+German-language RAG assistant for Gemeinde Schwyz road-traffic and parking inquiries — coursework prototype for milestone **PM4** of the AIBS project. The governing spec is `../_RAG_withPilot/REI_Community-RAG-Chatbot_AIBS_Projektbericht_v4_1_DE.docx` (the report has moved and been renamed several times during the course — v2 → v4.1, EN → DE; check `../_RAG_withPilot/` for the current file if this path goes stale again); many design choices trace to numbered requirements in it (REQ-xx, §4.2, §4.3, §4.4). When code and report disagree, surface it to the user rather than quietly fixing either.
+
+Note: §5.6–5.7 of the v4.1 report narrate a fully realised departmental pilot (private LLM on ITS Schwyz infrastructure, REQ-07 met, 72 live citizen queries) as part of the written business case. This repository implements the earlier-stage technical prototype only — Gemini via external API, no live citizen traffic. Treat the report's pilot narrative as the target/case-study state, not as a description of what's in this repo.
 
 Deployed: https://ragchatbotsz-4gfjul5ikk4khr3wotj9s8.streamlit.app/ · Repo: https://github.com/reigenmann-collab/RAGChatBotSZ
 

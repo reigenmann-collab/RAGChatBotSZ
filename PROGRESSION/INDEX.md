@@ -11,6 +11,7 @@ expensive to arrive at.
 | # | Date(s) | Summary | Left open |
 |---|---|---|---|
 | [001](001-prototype-build-and-deploy.md) | 2026-08-26 → 2026-09-04 | Built the PM4 prototype from the written report's spec; corpus reconnaissance turned up five findings that contradict the report; migrated Anthropic → Gemini; deployed to Streamlit Cloud; restyled the demo to match gemeindeschwyz.ch; set up the CLAUDE.md + `pm4-project-context` skill handoff (see 001 §9); short recap in [`docs/SESSION_RECAP_fromCode_PM4 prototype status.md`](<../docs/SESSION_RECAP_fromCode_PM4 prototype status.md>) | Evaluation chain never run end to end — threshold still the 0.82 placeholder, no PAA figures, caseworker review sheet not produced |
+| [002](002-report-v4_1-audit.md) | 2026-10-15 | Explained REQ-11 coverage-check implementation; built a backup slide (B17) for it; discovered the governing report had moved/renamed (v2→v4.1, EN→DE, new folder) and fixed three stale references across `CLAUDE.md`/`decisions.md`/`FOLDER-DESCRIPTION.md`; confirmed session 001's 150-query-gate finding was adopted into the report's roadmap | OCR-budgeting gap (001 finding 4) still not in the report; B17 slide not yet merged into the deck; eval chain still not run |
 
 ---
 

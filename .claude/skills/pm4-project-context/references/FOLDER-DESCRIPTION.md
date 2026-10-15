@@ -7,21 +7,27 @@ rather than editing it by hand.
 
 ## Where this sits
 
-The repository is `Prototype_PM4/`, one folder inside the wider coursework tree:
+The repository is `Prototype_PM4/`, one folder inside the wider coursework tree.
+That outer tree churns constantly (the report alone has gone through v2 → v3.9
+→ v4.0 → v4.1, EN → DE, and been renamed and moved more than once) — do not
+trust a cached file name here; re-list `../` if a path 404s. As of 2026-10-15:
 
 ```
 RAG Project/
-├── REI_Community-RAG-Chatbot_AIBS_Written_Project_Report_v2.docx   ← the spec
-├── REI_Community_RAG_Chatbot_Project_Plan_PM1-PM8_v2.xlsx          ← task plan
-├── REI_Overall_Milestone_Plan_Management_v2.pptx                   ← mgmt deck
-├── MS-0 … MS-5/                    course milestone submissions
-├── error-handling/                 saved Streamlit Cloud logs
-└── Prototype_PM4/                  ← this repo (git, deployed)
+├── _RAG_withPilot/
+│   └── REI_Community-RAG-Chatbot_AIBS_Projektbericht_v4_1_DE.docx   ← the spec (current)
+├── history/                         superseded report versions (e.g. the old v2)
+├── MS-0 … MS-5/                     course milestone submissions
+├── error-handling/                  saved Streamlit Cloud logs
+└── Prototype_PM4/                   ← this repo (git, deployed)
 ```
 
 The `.docx` report is the authority on requirements, metrics and milestone
 boundaries. Read it (or the extracts in `docs/`) before arguing with a design
-choice — most of them trace back to a numbered requirement.
+choice — most of them trace back to a numbered requirement. Its narrative in
+§5.6–5.7 describes a fully realised departmental pilot (private LLM on ITS
+Schwyz, REQ-07 met) that goes beyond what this repo implements — that is the
+report's case-study target state, not a claim about this codebase.
 
 ## Top level
 
@@ -87,12 +93,12 @@ Styled after gemeindeschwyz.ch.
 
 <!-- BEGIN GENERATED INVENTORY -->
 
-*Generated 2026-09-04 by `refresh_folder_description.py`.*
+*Generated 2026-10-15 by `refresh_folder_description.py`.*
 
 ## Repository state
 
 - Branch: `main`
-- HEAD: `f554e8c Handle Gemini API errors gracefully; switch default model`
+- HEAD: `c81187f Expand CLAUDE.md with commands and pipeline architecture`
 - Remote: https://github.com/reigenmann-collab/RAGChatBotSZ.git
 - Working tree: has uncommitted changes
 
@@ -107,10 +113,17 @@ Styled after gemeindeschwyz.ch.
 | Path | Size |
 |---|---|
 | `.claude/launch.json` | 253 B |
+| `.claude/skills/pm4-project-context/SKILL.md` | 6.9 KB |
+| `.claude/skills/pm4-project-context/references/FOLDER-DESCRIPTION.md` | 7.3 KB |
+| `.claude/skills/pm4-project-context/references/decisions.md` | 9.7 KB |
+| `.claude/skills/pm4-project-context/scripts/refresh_folder_description.py` | 5.2 KB |
 | `.devcontainer/devcontainer.json` | 1.0 KB |
 | `.env.example` | 376 B |
 | `.gitignore` | 420 B |
 | `.streamlit/config.toml` | 410 B |
+| `CLAUDE.md` | 7.1 KB |
+| `PROGRESSION/001-prototype-build-and-deploy.md` | 12.3 KB |
+| `PROGRESSION/INDEX.md` | 2.5 KB |
 | `README.md` | 5.2 KB |
 | `app/streamlit_app.py` | 19.9 KB |
 | `config.yaml` | 7.7 KB |
@@ -118,6 +131,7 @@ Styled after gemeindeschwyz.ch.
 | `data/index/corpus.faiss` | 54.0 KB |
 | `data/index/meta.json` | 329 B |
 | `docs/PM4_scope_and_corpus.md` | 7.4 KB |
+| `docs/SESSION_RECAP_fromCode_PM4 prototype status.md` | 7.0 KB |
 | `eval/calibrate.py` | 10.5 KB |
 | `eval/label.py` | 8.3 KB |
 | `eval/report_results.py` | 9.1 KB |

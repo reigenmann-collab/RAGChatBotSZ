@@ -12,7 +12,9 @@ silently vanishes reads as an oversight to the next session.
 ## Architecture
 
 ### The coverage check is not part of the confidence score
-Report §4.3. An answer can be fully grounded in what was retrieved and still omit
+Report §4.2 ("Ein viertes Signal — Abdeckung"); restated in §4.3 as one of
+three independent escalation triggers (confidence, coverage, hard routing),
+not folded into the composite C. An answer can be fully grounded in what was retrieved and still omit
 material information held in a document that was never retrieved — the model is
 legitimately confident, because what it saw does support what it said. No
 confidence signal detects that. Completeness and correctness are different
@@ -185,6 +187,9 @@ dumped a full stack trace onto the page.
   privately hosted model. This was a deliberate prototype trade-off.
 - **REQ-06 (<5s) is not met.** ~7–12s per query — two sequential API calls
   (generation, then the grounding check).
-- **The 150-query gate cannot be met on this corpus.** The test set is 50 →
-  rule-of-three upper bound 6.0%. Expanding the corpus is a prerequisite for
-  expanding the test set, and that dependency is missing from the report's plan.
+- **The 150-query gate cannot be met on this corpus yet.** The test set here is
+  still 50 → rule-of-three upper bound 6.0%. This was flagged in PM4's corpus
+  reconnaissance (PROGRESSION/001 §2, finding 5) as missing from the report's
+  roadmap — **since adopted**: report v4.1 §7.2 now makes expanding the
+  Parkieren test set to 150 queries an explicit Phase 1 / Gate 1 condition.
+  Still not done in this repo's `eval/testset.yaml`.
