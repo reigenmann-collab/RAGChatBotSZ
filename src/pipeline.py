@@ -40,8 +40,7 @@ CFG = load_config()
 NO_ANSWER_TEXT = (
     "Diese Anfrage wird nicht automatisch beantwortet aufgrund eines Treffers im "
     "Themenabgleich (rechtlich/sensibel), eines unterschrittenen Schwellenwerts "
-    "oder einer Abdeckungslücke. Sie wurde an die zuständige Sachbearbeitung der "
-    "Gemeinde Schwyz weitergeleitet."
+    "oder einer Abdeckungslücke."
 )
 
 
