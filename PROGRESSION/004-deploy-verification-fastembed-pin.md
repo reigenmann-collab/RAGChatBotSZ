@@ -69,20 +69,22 @@ this instability can flip, which is one more argument for treating 0.65 as
 unvalidated until the negative-control test (003 §8) explicitly includes a
 cross-environment check, not just cross-phrasing.
 
-## 4. Status
+## 4. Status — re-verified, fixed
 
-Fix pushed; Streamlit Cloud rebuild triggered. **Not yet re-verified** — the
-borderline query needs to be re-run against the live deployment once the
-rebuild completes to confirm the pin actually closes the gap. If it doesn't,
-the next step is either widening the threshold's safety margin or accepting
-that quantised ONNX models need a tolerance band rather than a hard cosine
-cutoff.
+Re-ran the exact borderline query against the live deployment after the pinned
+rebuild completed: **"HART GEROUTET"**, with the Prüfansicht reporting
+*"Themenabgleich: Ähnlichkeit 0.718 (Schwelle 0.650) zu »Das kann doch nicht
+rechtens sein, was kann ich dagegen unternehmen?«"* — the similarity value is
+now bit-for-bit identical to the local measurement (003 §6). The version pin
+fully closed the gap for this case; no residual quantised-ONNX platform drift
+was observed here, though that remains a theoretical risk worth keeping in
+mind for cases even closer to the threshold than this one (margin 0.068).
 
 ## 5. Left open
 
-- Re-verify the borderline query on the deployed app after this rebuild.
 - Everything from 003 §8 unchanged (reference set still only 18 examples,
   negative-control test not run) — now explicitly scoped to include a
-  cross-environment check.
+  cross-environment check as a regression guard, even though this specific
+  instance of drift is now fixed.
 - Everything from 002 §5 (eval chain, OCR budgeting gap, B17 slide) — still
   open, untouched.
