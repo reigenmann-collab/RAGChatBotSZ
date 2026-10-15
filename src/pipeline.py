@@ -3,14 +3,18 @@ End-to-end pipeline (report Figure 1).
 
 Order of operations matters and is not arbitrary:
 
-  1. Topic-based hard routing runs FIRST, before retrieval or generation. The
+  1. The query is embedded ONCE (report 4.1: "derselbe Embedding-Vektor dient
+     sowohl dem Abgleich mit der Vektordatenbank als auch ... dem
+     Themenabgleich"). That one vector feeds both the hard-routing topic match
+     and, if not hard-routed, the retrieval step - no second embedding call.
+  2. Topic-based hard routing runs FIRST, before retrieval or generation. The
      report requires these inquiries to reach a human "without an automated
      answer attempt" - so the prototype must not generate an answer and then
      discard it. Nothing is generated at all.
-  2. Retrieve -> generate -> coverage check -> composite confidence.
-  3. Routing decides on coverage and confidence together.
-  4. Escalations carry an auto-generated summary (REQ-03).
-  5. Every query is written to the pseudonymised audit log (REQ-08/09).
+  3. Retrieve -> generate -> coverage check -> composite confidence.
+  4. Routing decides on coverage and confidence together.
+  5. Escalations carry an auto-generated summary (REQ-03).
+  6. Every query is written to the pseudonymised audit log (REQ-08/09).
 
 Usage:
     python src/pipeline.py "Was kostet eine Gewerbeparkkarte?"
@@ -29,23 +33,31 @@ import coverage as coverage_mod  # noqa: E402
 import routing  # noqa: E402
 from config import load_config, model_name  # noqa: E402
 from generate import generate_answer, generate_summary  # noqa: E402
-from retrieve import retrieve  # noqa: E402
+from retrieve import embed_query, retrieve  # noqa: E402
 
 CFG = load_config()
 
 NO_ANSWER_TEXT = (
-    "Diese Anfrage wird nicht automatisch beantwortet. Sie wurde an die zuständige "
-    "Sachbearbeitung der Gemeinde Schwyz weitergeleitet."
+    "Diese Anfrage wird nicht automatisch beantwortet aufgrund eines Treffers im "
+    "Themenabgleich (rechtlich/sensibel), eines unterschrittenen Schwellenwerts "
+    "oder einer Abdeckungslücke. Sie wurde an die zuständige Sachbearbeitung der "
+    "Gemeinde Schwyz weitergeleitet."
 )
 
 
 def answer_query(query: str, *, log: bool = True) -> dict:
     started = time.perf_counter()
 
-    # --- 1. Hard routing, before any generation attempt ----------------------
-    hard, matched = routing.is_hard_routed(query)
-    if hard:
-        route = routing.decide(query, composite=None, coverage=None)
+    # --- 1. Embed once, reused for the topic match and (if needed) retrieval -
+    query_vec = embed_query(query)
+
+    # --- 2. Hard routing, before any generation attempt ----------------------
+    # Checked directly (not via decide()) so a miss doesn't fall through to a
+    # premature "composite is None" confidence escalation before generation
+    # has even run.
+    topic = routing.is_hard_routed(query_vec)
+    if topic["matched"]:
+        route = routing.decide(query_vec, composite=None, coverage=None)
         result = {
             "query": query,
             "answer": NO_ANSWER_TEXT,
@@ -56,7 +68,8 @@ def answer_query(query: str, *, log: bool = True) -> dict:
             "escalate": True,
             "reason": route["reason"],
             "threshold": route["threshold"],
-            "matched_terms": matched,
+            "matched_terms": route["matched_terms"],
+            "topic_match": route.get("topic_match"),
             "retrieved_chunk_ids": [],
             "retrieved_doc_types": [],
             "generated": False,
@@ -68,18 +81,18 @@ def answer_query(query: str, *, log: bool = True) -> dict:
             auditlog.write(result)
         return result
 
-    # --- 2. Retrieve and generate -------------------------------------------
-    hits = retrieve(query)
+    # --- 3. Retrieve and generate -------------------------------------------
+    hits = retrieve(query, query_vec=query_vec)
     generated = generate_answer(query, hits)
 
-    # --- 3. Coverage (REQ-11) and composite confidence (4.3) ----------------
+    # --- 4. Coverage (REQ-11) and composite confidence (4.2) ----------------
     cov = coverage_mod.check(query, hits)
     signals = confidence.score(
         query, generated["answer"], hits, generated["self_assessment"]
     )
 
-    # --- 4. Route ------------------------------------------------------------
-    route = routing.decide(query, signals["composite"], cov)
+    # --- 5. Route (re-evaluates; the topic match result is unchanged) -------
+    route = routing.decide(query_vec, signals["composite"], cov)
     escalate = route["escalate"]
 
     result = {
@@ -106,6 +119,7 @@ def answer_query(query: str, *, log: bool = True) -> dict:
         "reason": route["reason"],
         "threshold": route["threshold"],
         "matched_terms": [],
+        "topic_match": route.get("topic_match"),
         "retrieved_chunk_ids": [h["chunk_id"] for h in hits],
         "retrieved_doc_types": sorted({h["doc_type"] for h in hits}),
         "generated": True,

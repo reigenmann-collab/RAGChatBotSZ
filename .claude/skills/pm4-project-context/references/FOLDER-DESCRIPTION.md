@@ -98,7 +98,7 @@ Styled after gemeindeschwyz.ch.
 ## Repository state
 
 - Branch: `main`
-- HEAD: `c81187f Expand CLAUDE.md with commands and pipeline architecture`
+- HEAD: `0aad82c Align project docs with report v4.1; add PROGRESSION 002 audit entry`
 - Remote: https://github.com/reigenmann-collab/RAGChatBotSZ.git
 - Working tree: has uncommitted changes
 
@@ -114,19 +114,20 @@ Styled after gemeindeschwyz.ch.
 |---|---|
 | `.claude/launch.json` | 253 B |
 | `.claude/skills/pm4-project-context/SKILL.md` | 6.9 KB |
-| `.claude/skills/pm4-project-context/references/FOLDER-DESCRIPTION.md` | 7.3 KB |
-| `.claude/skills/pm4-project-context/references/decisions.md` | 9.7 KB |
+| `.claude/skills/pm4-project-context/references/FOLDER-DESCRIPTION.md` | 7.8 KB |
+| `.claude/skills/pm4-project-context/references/decisions.md` | 12.8 KB |
 | `.claude/skills/pm4-project-context/scripts/refresh_folder_description.py` | 5.2 KB |
 | `.devcontainer/devcontainer.json` | 1.0 KB |
 | `.env.example` | 376 B |
 | `.gitignore` | 420 B |
 | `.streamlit/config.toml` | 410 B |
-| `CLAUDE.md` | 7.1 KB |
+| `CLAUDE.md` | 8.2 KB |
 | `PROGRESSION/001-prototype-build-and-deploy.md` | 12.3 KB |
-| `PROGRESSION/INDEX.md` | 2.5 KB |
+| `PROGRESSION/002-report-v4_1-audit.md` | 6.0 KB |
+| `PROGRESSION/INDEX.md` | 3.2 KB |
 | `README.md` | 5.2 KB |
-| `app/streamlit_app.py` | 19.9 KB |
-| `config.yaml` | 7.7 KB |
+| `app/streamlit_app.py` | 20.3 KB |
+| `config.yaml` | 10.0 KB |
 | `data/index/chunks.jsonl` | 80.3 KB |
 | `data/index/corpus.faiss` | 54.0 KB |
 | `data/index/meta.json` | 329 B |
@@ -147,9 +148,9 @@ Styled after gemeindeschwyz.ch.
 | `src/ingest.py` | 6.2 KB |
 | `src/llm.py` | 4.3 KB |
 | `src/ocr.py` | 4.3 KB |
-| `src/pipeline.py` | 6.0 KB |
-| `src/retrieve.py` | 1.7 KB |
-| `src/routing.py` | 2.9 KB |
+| `src/pipeline.py` | 6.9 KB |
+| `src/retrieve.py` | 2.0 KB |
+| `src/routing.py` | 3.6 KB |
 
 ## Present on disk but not committed
 

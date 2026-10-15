@@ -2,9 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-German-language RAG assistant for Gemeinde Schwyz road-traffic and parking inquiries — coursework prototype for milestone **PM4** of the AIBS project. The governing spec is `../_RAG_withPilot/REI_Community-RAG-Chatbot_AIBS_Projektbericht_v4_1_DE.docx` (the report has moved and been renamed several times during the course — v2 → v4.1, EN → DE; check `../_RAG_withPilot/` for the current file if this path goes stale again); many design choices trace to numbered requirements in it (REQ-xx, §4.2, §4.3, §4.4). When code and report disagree, surface it to the user rather than quietly fixing either.
+German-language RAG assistant for Gemeinde Schwyz road-traffic and parking inquiries — coursework prototype, now framed as **PM3 (PoC-Demonstrator)** in the app UI rather than PM4, matching the report's own PM3-PoC-vs-PM4-pilot distinction. The governing spec is whatever's current under `../_RAG_withPilot/` (as of 2026-10-15: `REI_Community-RAG-Chatbot_AIBS_Projektbericht_v4_3_DE.docx` — the report has moved, been renamed and been re-versioned repeatedly during the course; re-list `../_RAG_withPilot/` rather than trusting this filename); many design choices trace to numbered requirements in it (REQ-xx, §4.2, §4.3, §4.4). When code and report disagree, surface it to the user rather than quietly fixing either.
 
-Note: §5.6–5.7 of the v4.1 report narrate a fully realised departmental pilot (private LLM on ITS Schwyz infrastructure, REQ-07 met, 72 live citizen queries) as part of the written business case. This repository implements the earlier-stage technical prototype only — Gemini via external API, no live citizen traffic. Treat the report's pilot narrative as the target/case-study state, not as a description of what's in this repo.
+Note: §5.6–5.7 of the report narrate a fully realised departmental pilot (private LLM on ITS Schwyz infrastructure, REQ-07 met, 72 live citizen queries) as part of the written business case. This repository implements the earlier-stage PoC-demonstrator only — Gemini via external API, no live citizen traffic. Treat the report's pilot narrative as the target/case-study state, not as a description of what's in this repo.
 
 Deployed: https://ragchatbotsz-4gfjul5ikk4khr3wotj9s8.streamlit.app/ · Repo: https://github.com/reigenmann-collab/RAGChatBotSZ
 
@@ -41,16 +41,22 @@ python eval/report_results.py           # → eval/results/pm4_results.md
 
 ## Architecture
 
-`src/pipeline.py::answer_query` is the spine; the order of its steps is load-bearing:
+`src/pipeline.py::answer_query` is the spine; the order of its steps is load-bearing. Three escalation triggers exist, falling into **two reasons** — never conflate them (report §4.3):
 
-1. **Hard routing first** (`routing.is_hard_routed`) — legal disputes/appeals return *before retrieval or generation*, with only an escalation summary. The report requires "no automated answer attempt"; generating then discarding would miss the point.
-2. `retrieve` (FAISS over local ONNX embeddings) → `generate_answer` (German, cited, JSON-schema output).
-3. **Two independent checks on the draft:** `coverage.check` (REQ-11: fee/permit questions must retrieve a document of the required `doc_type`) and `confidence.score` (composite `C = w₁S₁ + w₂S₂ + w₃S₃`: retrieval similarity, claim-by-claim grounding via a second LLM call, model self-assessment). Coverage is deliberately **not** folded into `C` — completeness and correctness are different properties.
-4. `routing.decide` combines them; escalations get an LLM-written summary (REQ-03); every query is written to the pseudonymised audit log.
+- **"Darf nicht antworten"** (must not answer at all) — topic-based hard routing for legal/sensitive queries. Independent of confidence; no answer is attempted.
+- **"Kann nicht sicher genug antworten"** (can't answer safely enough) — composite confidence below threshold, *or* the REQ-11 coverage check failing. Both evaluated only after a draft exists.
+
+Steps:
+
+1. **Embed the query once** (`retrieve.embed_query`) — the same vector feeds both the topic match below and, if not hard-routed, the retrieval step (report §4.1: "ohne zusätzlichen Modellaufruf").
+2. **Hard routing first** (`routing.is_hard_routed`, via `topic_match.py`) — legal disputes/sensitive queries return *before retrieval or generation*, with only an escalation summary. Detected by cosine similarity of the query embedding against a curated reference set (`config.yaml` → `routing.legal_sensitive_examples`), **not** keyword matching — changed from the prototype's first implementation when report v4.3 redefined the mechanism; see `decisions.md` for the trade-offs and why this isn't a strict improvement.
+3. `retrieve` (FAISS over local ONNX embeddings, reusing the already-computed query vector) → `generate_answer` (German, cited, JSON-schema output).
+4. **Two independent checks on the draft:** `coverage.check` (REQ-11: fee/permit questions must retrieve a document of the required `doc_type`) and `confidence.score` (composite `C = w₁S₁ + w₂S₂ + w₃S₃`: retrieval similarity, claim-by-claim grounding via a second LLM call, model self-assessment). Coverage is deliberately **not** folded into `C` — completeness and correctness are different properties.
+5. `routing.decide` combines them; escalations get an LLM-written summary (REQ-03); every query is written to the pseudonymised audit log.
 
 Things only visible across files:
 
-- **`config.yaml` is the control plane.** Corpus sources (each with a `doc_type` and optional `indexable: false`), model names, token budgets, confidence weights, threshold, coverage rules, and hard-route terms all live there. The `doc_type` assigned to a source is what REQ-11 keys on, so retyping a document changes routing behaviour.
+- **`config.yaml` is the control plane.** Corpus sources (each with a `doc_type` and optional `indexable: false`), model names, token budgets, confidence weights, threshold, coverage rules, and the legal/sensitive reference examples + similarity threshold all live there. The `doc_type` assigned to a source is what REQ-11 keys on, so retyping a document changes routing behaviour.
 - **`src/llm.py::structured()` is the only text-generation entry point.** `generate.py`, `confidence.py`, and `eval/label.py` all call it; its `tool_name` arg is unused (kept from the earlier Anthropic tool-use interface). Swapping providers means touching `llm.py` and `config.py` only. It retries transient `ServerError`s; the Streamlit app catches `ServerError`/`ClientError` separately from a catch-all.
 - **Indexing writes two parallel artefacts** — `data/index/corpus.faiss` and `chunks.jsonl` — matched by position. Chunks carry `embed_text` (title-prefixed, used for embedding) and `text` (clean, used for generation).
 - **`eval/run_eval.py` stores raw signals (S1/S2/S3/coverage) for every query**, not just the routing outcome, so `calibrate.py` can sweep thresholds offline. `label.py` must label *every generated* row including escalated ones — labelling only auto-answered rows censors the calibration sample. `calibrate.py --apply` edits the literal line `calibrated_threshold: null` in `config.yaml`.

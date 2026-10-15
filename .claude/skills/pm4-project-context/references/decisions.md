@@ -27,11 +27,59 @@ Verified on live data: *"Was kostet eine Gewerbeparkkarte?"* once retrieved only
 Report §4.4 requires legal disputes and appeals to reach a human "without an
 automated answer attempt". Generating an answer and then discarding it would
 satisfy the letter and miss the point. `pipeline.answer_query` therefore checks
-hard-route patterns first and returns before retrieval.
+the topic match first and returns before retrieval.
 
 Keeping this separate from confidence escalation is deliberate: collapsing them
 would mean a *confidently* answered legal question gets delivered automatically,
 which is precisely the outcome the design exists to prevent.
+
+### Hard routing detects by embedding similarity, not keyword matching (since report v4.3)
+Changed 2026-10-15. The prototype's first implementation (report v2–v4.1 state)
+matched 24 literal keywords (`einsprache`, `busse`, `haftung`, …) as substrings
+of the lowercased query — simple, fully auditable, but blind to any paraphrase
+that didn't use one of those exact words. Report v4.3 §4.2/§4.3 redefines the
+mechanism as cosine similarity between the query's embedding and a curated set
+of reference example *sentences*, reusing the **same embedding vector already
+computed for retrieval** — no second model call, no added latency (report
+§4.1: "parallel und ohne zusätzlichen Modellaufruf").
+
+Implementation: `src/topic_match.py` embeds `config.yaml` →
+`routing.legal_sensitive_examples` once per process (`lru_cache`); `src/
+routing.py::is_hard_routed` takes the precomputed query vector (from
+`retrieve.embed_query()`, computed once in `pipeline.py` and reused for
+retrieval too) and checks its similarity to the *nearest* reference example
+against `legal_sensitive_similarity_threshold`.
+
+**Trade-off, stated plainly — this is not a strict improvement:**
+- *Gain:* catches paraphrases the keyword list structurally cannot. Verified:
+  *"Ich finde das nicht fair, was kann ich unternehmen, um das zu ändern?"*
+  contains none of the 24 old keywords and still routes correctly (similarity
+  0.718 against "Das kann doch nicht rechtens sein…", threshold 0.65).
+- *Cost:* less auditable than "the word X was in the query" — a caseworker
+  can't eyeball why a borderline case fired or didn't the way they could read
+  a keyword list. Needs its own threshold, calibrated separately from the
+  confidence threshold, with its own false-positive risk (a routine question
+  can coincidentally sit close to a reference example — see below).
+- The report itself calls the reference-set maintenance "**Pflegeaufwand,
+  kein Architekturproblem**" (§4.3) — i.e. not zero-cost, just a different
+  kind of cost, shifted from engineering (word-list upkeep) toward content
+  ownership (collecting real phrasings) **plus** an engineering task that
+  doesn't go away: threshold calibration and periodic effectiveness review.
+
+The old keyword list (24 terms, with its ASCII-variant duplicates like
+`verfügung`/`verfuegung`) is archived unchanged in
+`docs/PM4_Stichwortlisten_Themenabgleich_REQ11.xlsx` for traceability. It is
+no longer read by any code.
+
+**`legal_sensitive_similarity_threshold: 0.65` is an empirically sanity-checked
+placeholder, not a calibrated value** — same status as the `0.82` composite
+threshold. Checked against 12 probe queries (paraphrases of real and routine
+questions) with a clean gap between 0.580 (highest routine) and 0.611 (lowest
+legal); 0.65 sits in that gap. Not run against a labelled test set, and not
+yet subjected to the negative-control test the report requires for REQ-11
+(report 5.6/7.3) — the same kind of test applies here: can it be fooled by an
+adversarial routine phrasing, and does it miss a legal paraphrase it should
+catch? Both are open questions until tested properly.
 
 ### S2 carries the largest weight; S3 is never decisive
 Retrieval similarity says relevant text was found, not that the answer is

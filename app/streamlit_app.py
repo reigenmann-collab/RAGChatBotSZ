@@ -30,7 +30,7 @@ from google.genai import errors as genai_errors
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-st.set_page_config(page_title="Auskunfts-Assistent Strassenverkehr - PM4", layout="wide")
+st.set_page_config(page_title="Auskunfts-Assistent Strassenverkehr - PM3", layout="wide")
 
 RED = "#e10a12"
 NAVY = "#050924"
@@ -191,13 +191,13 @@ def top_bar() -> None:
             </div>
             <div class="gs-spacer"></div>
             <a class="gs-navlink" href="#" onclick="return false;">INDEX</a>
-            <a class="gs-navlink" href="#" onclick="return false;">BERICHT PM4</a>
-            <div class="gs-pilot-badge">Pilot · PM4</div>
+            <a class="gs-navlink" href="#" onclick="return false;">BERICHT PM3</a>
+            <div class="gs-pilot-badge">PM3 · PoC-Demonstrator</div>
         </div>
         <div class="gs-breadcrumb">
             🏠&nbsp; Home <span class="sep">›</span> Einwohnerservices
             <span class="sep">›</span> Umwelt und Mobilität
-            <span class="sep">›</span> <b>Auskunfts-Assistent (Pilot)</b>
+            <span class="sep">›</span> <b>Auskunfts-Assistent (PoC-Demonstrator)</b>
         </div>
         """,
         unsafe_allow_html=True,
@@ -227,7 +227,7 @@ def sidebar(cfg, stats, threshold) -> bool:
     demo can switch it off to show only what a real citizen would see."""
     st.sidebar.markdown(
         '<div style="font-family:Barlow,sans-serif;font-weight:800;font-size:1.1rem;'
-        'color:#050924;">PM4 — Departementaler Pilot</div>',
+        'color:#050924;">PM3 — PoC-Demonstrator</div>',
         unsafe_allow_html=True,
     )
     st.sidebar.caption("Verkehr / Strassenverkehr, Gemeinde Schwyz")
@@ -253,7 +253,7 @@ def sidebar(cfg, stats, threshold) -> bool:
     if calibrated is None:
         st.sidebar.warning(
             "Platzhalter-Schwelle. Der kalibrierte Wert entsteht erst aus "
-            "`eval/calibrate.py` (Bericht 4.3)."
+            "`eval/calibrate.py` (Bericht 4.2)."
         )
     else:
         st.sidebar.success("Kalibrierter Schwellenwert aus dem Testset.")
@@ -264,7 +264,7 @@ def sidebar(cfg, stats, threshold) -> bool:
         f"+ {w['s3_self_assessment']}·S3"
     )
     st.sidebar.caption(
-        "Prototyp. Auskunft ohne Rechtsverbindlichkeit. "
+        "PoC-Demonstrator. Auskunft ohne Rechtsverbindlichkeit. "
         "Die Antwortgenerierung nutzt eine externe API - REQ-07 (Schweizer "
         "Infrastruktur) ist im Prototyp bewusst nicht erfüllt."
     )
@@ -275,9 +275,17 @@ def render_signals(result) -> None:
     signals = result.get("signals")
     if not signals:
         st.info(
-            "Für hart geroutete Anfragen werden keine Signale berechnet - "
-            "es wird bewusst kein Antwortversuch unternommen (Bericht 4.4)."
+            "Für Anfragen mit einem Treffer im Themenabgleich (rechtlich/sensibel) "
+            "werden keine Signale berechnet - es wird bewusst kein Antwortversuch "
+            "unternommen (Bericht 4.3)."
         )
+        topic = result.get("topic_match")
+        if topic:
+            st.caption(
+                f"Themenabgleich: Ähnlichkeit {topic['similarity']:.3f} "
+                f"(Schwelle {topic['threshold']:.3f}) zu "
+                f"»{topic['nearest_example']}«"
+            )
         return
 
     cols = st.columns(4)
@@ -378,7 +386,7 @@ def main() -> None:
 
     st.markdown('<div class="gs-h1">Auskunfts-Assistent Strassenverkehr</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="gs-h1-sub">Gemeinde Schwyz · Prototyp des departementalen Pilots (PM4)</div>',
+        '<div class="gs-h1-sub">Gemeinde Schwyz · PM3 — PoC-Demonstrator</div>',
         unsafe_allow_html=True,
     )
 
@@ -451,7 +459,7 @@ def main() -> None:
         # pilot-inspection content - a real citizen never sees either, so both
         # stay behind the same toggle as the right-hand "Prüfansicht".
         if show_inspection and result["escalate"] and result.get("draft_answer"):
-            with st.expander("Nicht ausgelieferter Entwurf (nur zur Prüfung im Pilot)"):
+            with st.expander("Nicht ausgelieferter Entwurf (nur zur Prüfung im PoC-Demonstrator)"):
                 st.write(result["draft_answer"])
 
         if result["sources"]:
@@ -459,7 +467,7 @@ def main() -> None:
 
     if show_inspection:
         with columns[1]:
-            section("Prüfansicht (Pilot)")
+            section("Prüfansicht (PoC Demonstrator)")
             st.caption(f"Begründung: {result['reason']}")
             render_signals(result)
             render_coverage(result)

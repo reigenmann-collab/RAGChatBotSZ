@@ -36,11 +36,18 @@ def embed_query(text: str) -> np.ndarray:
     return vec
 
 
-def retrieve(query: str, top_k: int | None = None) -> list[dict]:
-    """Return the top-k chunks, each with its cosine similarity to the query."""
+def retrieve(
+    query: str, top_k: int | None = None, query_vec: np.ndarray | None = None
+) -> list[dict]:
+    """Return the top-k chunks, each with its cosine similarity to the query.
+
+    Pass a precomputed `query_vec` (from embed_query()) to reuse an embedding
+    already produced elsewhere in the same request - e.g. for the topic match
+    in topic_match.py - instead of embedding the query twice."""
     index, chunks, _ = _resources()
     k = top_k or RET["top_k"]
-    scores, ids = index.search(embed_query(query), min(k, index.ntotal))
+    vec = query_vec if query_vec is not None else embed_query(query)
+    scores, ids = index.search(vec, min(k, index.ntotal))
 
     hits: list[dict] = []
     for score, idx in zip(scores[0], ids[0]):

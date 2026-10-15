@@ -171,37 +171,54 @@ coverage:
         - "verpflichtet"
       required_doc_types: [verordnung]
 
-# --- Routing (report 4.4) ---------------------------------------------------
-# Two INDEPENDENT mechanisms. Hard routing is evaluated first and is never
-# overridden by a high confidence score.
+# --- Routing (report 4.3) ----------------------------------------------------
+# THREE independent triggers (report v4.3 4.2/4.3): confidence threshold,
+# coverage check, and this one - topic-based hard routing for legal/sensitive
+# queries. Hard routing is evaluated first, before retrieval or generation, and
+# is never overridden by a high confidence score.
+#
+# Mechanism changed in report v4.3: embedding-similarity against a curated
+# reference set, not keyword matching. It reuses the SAME query embedding
+# computed for retrieval - "parallel und ohne zusätzlichen Modellaufruf"
+# (report 4.1) - so switching this on costs no extra latency or API call.
+# A query is routed hard if its cosine similarity to the NEAREST reference
+# example is >= legal_sensitive_similarity_threshold.
+#
+# The old keyword list (24 terms) is archived, unchanged, in
+# docs/PM4_Stichwortlisten_Themenabgleich_REQ11.xlsx for traceability - it was
+# the prototype's first implementation and is not used by the code anymore.
 routing:
-  hard_route_patterns:
-    - "einsprache"
-    - "rekurs"
-    - "beschwerde"
-    - "anfechten"
-    - "anfechtung"
-    - "rechtsmittel"
-    - "klage"
-    - "klagen"
-    - "anwalt"
-    - "rechtsanwalt"
-    - "gericht"
-    - "strafverfahren"
-    - "strafbefehl"
-    - "busse"
-    - "schadenersatz"
-    - "haftung"
-    - "haftbar"
-    - "haftet"
-    - "widerspruch"
-    - "entzug"
-    - "verfügung"
-    - "verfuegung"
-    - "streit"
-    - "unrechtmässig"
-    - "unrechtmaessig"
-  hard_route_reason: "Rechtliche Streitigkeit oder Rechtsmittel - wird ohne automatisierten Antwortversuch an eine Sachbearbeiterin oder einen Sachbearbeiter weitergeleitet."
+  legal_sensitive_examples:
+    # Rechtsmittel / Verwaltungsverfahren
+    - "Ich möchte gegen die Busse Einsprache erheben."
+    - "Wie kann ich gegen diesen Entscheid Beschwerde einlegen?"
+    - "Ich bin mit der Verfügung nicht einverstanden und möchte sie anfechten."
+    - "Ich möchte Rekurs gegen den Entscheid der Gemeinde einreichen."
+    - "Mein Anwalt hat mir geraten, gegen die Verfügung vorzugehen."
+    - "Kann ich gegen die Höhe der Busse Widerspruch einlegen?"
+    - "Mir wurde der Führerausweis entzogen, wie gehe ich dagegen vor?"
+    # Straf-/Zivilrecht, Gericht
+    - "Ich wurde angezeigt und habe einen Strafbefehl erhalten."
+    - "Es läuft ein Strafverfahren gegen mich wegen eines Parkverstosses."
+    - "Ich werde vor Gericht gegen die Busse vorgehen."
+    - "Ich bin in einen Rechtsstreit mit der Gemeinde verwickelt."
+    - "Ich habe eine Klage gegen die Gemeinde eingereicht."
+    - "Das Vorgehen der Gemeinde halte ich für unrechtmässig."
+    # Haftung
+    - "Wer haftet für den Schaden an meinem Fahrzeug, der durch einen Mangel am Gemeindeparkplatz entstanden ist?"
+    - "Ich fordere Schadenersatz für den entstandenen Schaden."
+    - "Die Gemeinde ist meiner Meinung nach haftbar für den Vorfall."
+    # Umschreibungen ohne eines der obigen Schlüsselwörter - der Grund für den
+    # Wechsel von reiner Stichwortsuche zu Embedding-Ähnlichkeit (report 4.3).
+    - "Ich will mich gegen diese Entscheidung wehren."
+    - "Das kann doch nicht rechtens sein, was kann ich dagegen unternehmen?"
+  # Placeholder - empirically sanity-checked (12 probe queries, clean gap
+  # between 0.580 and 0.611 cosine similarity with this reference set and
+  # MiniLM-multilingual), but NOT calibrated against a labelled test set.
+  # Needs the same negative-control test as REQ-11 (report 5.6/7.3) before
+  # go-live: can it be fooled, and does it miss paraphrases it should catch?
+  legal_sensitive_similarity_threshold: 0.65
+  hard_route_reason: "Rechtlich-sensible Anfrage - Treffer im Themenabgleich (Embedding-Ähnlichkeit); wird ohne automatisierten Antwortversuch an eine Sachbearbeiterin oder einen Sachbearbeiter weitergeleitet (Bericht 4.3)."
 
 # --- Logging (REQ-08 pseudonymisation, REQ-09 auditability) -----------------
 logging:
