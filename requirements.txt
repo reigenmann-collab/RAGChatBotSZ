@@ -1,6 +1,15 @@
 # PM4 Departmental Pilot - Community RAG Chatbot (Traffic Department / Strassenverkehr)
 # Python 3.14 compatible
-fastembed>=0.8
+#
+# fastembed and onnxruntime are PINNED, not >=, deliberately: retrieval and the
+# topic-match similarity threshold (config.yaml -> legal_sensitive_similarity_threshold)
+# both depend on getting numerically identical embeddings locally and on
+# Streamlit Cloud. An unpinned fastembed let Cloud resolve a different minor
+# version than local dev, which was enough to shift a borderline topic-match
+# similarity across the 0.65 threshold between environments - see
+# decisions.md "Hard routing detects by embedding similarity" / PROGRESSION 004.
+fastembed==0.8.0
+onnxruntime==1.29.0
 google-genai>=1.0
 faiss-cpu>=1.9
 pypdf>=5.0

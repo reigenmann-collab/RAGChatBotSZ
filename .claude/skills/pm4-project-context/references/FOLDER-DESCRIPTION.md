@@ -98,7 +98,7 @@ Styled after gemeindeschwyz.ch.
 ## Repository state
 
 - Branch: `main`
-- HEAD: `0aad82c Align project docs with report v4.1; add PROGRESSION 002 audit entry`
+- HEAD: `2a1fe7e Rebrand app to PM3/PoC-Demonstrator; switch hard routing to embedding similarity`
 - Remote: https://github.com/reigenmann-collab/RAGChatBotSZ.git
 - Working tree: has uncommitted changes
 
@@ -114,7 +114,7 @@ Styled after gemeindeschwyz.ch.
 |---|---|
 | `.claude/launch.json` | 253 B |
 | `.claude/skills/pm4-project-context/SKILL.md` | 6.9 KB |
-| `.claude/skills/pm4-project-context/references/FOLDER-DESCRIPTION.md` | 7.8 KB |
+| `.claude/skills/pm4-project-context/references/FOLDER-DESCRIPTION.md` | 7.9 KB |
 | `.claude/skills/pm4-project-context/references/decisions.md` | 12.8 KB |
 | `.claude/skills/pm4-project-context/scripts/refresh_folder_description.py` | 5.2 KB |
 | `.devcontainer/devcontainer.json` | 1.0 KB |
@@ -124,13 +124,15 @@ Styled after gemeindeschwyz.ch.
 | `CLAUDE.md` | 8.2 KB |
 | `PROGRESSION/001-prototype-build-and-deploy.md` | 12.3 KB |
 | `PROGRESSION/002-report-v4_1-audit.md` | 6.0 KB |
-| `PROGRESSION/INDEX.md` | 3.2 KB |
+| `PROGRESSION/003-pm3-rebrand-and-topic-match-switch.md` | 8.3 KB |
+| `PROGRESSION/INDEX.md` | 3.8 KB |
 | `README.md` | 5.2 KB |
 | `app/streamlit_app.py` | 20.3 KB |
 | `config.yaml` | 10.0 KB |
 | `data/index/chunks.jsonl` | 80.3 KB |
 | `data/index/corpus.faiss` | 54.0 KB |
 | `data/index/meta.json` | 329 B |
+| `docs/PM4_Stichwortlisten_Themenabgleich_REQ11.xlsx` | 7.6 KB |
 | `docs/PM4_scope_and_corpus.md` | 7.4 KB |
 | `docs/SESSION_RECAP_fromCode_PM4 prototype status.md` | 7.0 KB |
 | `eval/calibrate.py` | 10.5 KB |
@@ -138,7 +140,7 @@ Styled after gemeindeschwyz.ch.
 | `eval/report_results.py` | 9.1 KB |
 | `eval/run_eval.py` | 4.1 KB |
 | `eval/testset.yaml` | 16.5 KB |
-| `requirements.txt` | 294 B |
+| `requirements.txt` | 861 B |
 | `src/auditlog.py` | 2.5 KB |
 | `src/chunk_index.py` | 5.8 KB |
 | `src/confidence.py` | 5.6 KB |
@@ -151,6 +153,7 @@ Styled after gemeindeschwyz.ch.
 | `src/pipeline.py` | 6.9 KB |
 | `src/retrieve.py` | 2.0 KB |
 | `src/routing.py` | 3.6 KB |
+| `src/topic_match.py` | 2.3 KB |
 
 ## Present on disk but not committed
 
